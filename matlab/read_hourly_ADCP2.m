@@ -61,11 +61,11 @@ end
 % vertical bin size and motion of the tide
 % average over nb to get a more robust time series (2.5m)
 igd = find(pcgd>0.4);
-itop = igd(1); nz = length(Zc-itop); nb = 5; nbin = ceil(nz/nb); nt = length(tr);
+itop = igd(1); nz = length(Zc-itop); nb = 2; nbin = ceil(nz/nb); nt = length(tr);
 ug = nan(nbin,nt); vg = ug; ndat = ug; zc = nan(nbin,1);
 
 for ii = 1:nbin
-  i1 = (ii-1)*nb+itop; iav = i1:min(i1+nb-1,nz);
+  i1 = (ii-1)*nb+itop; iav = i1:min(i1+nb,nz);
   if length(iav)>=3
     ug(ii,:) = nanmean(Ug(iav,:),1);
     vg(ii,:) = nanmean(Vg(iav,:),1);
@@ -90,7 +90,7 @@ pcnan = sum(isnan(unn),2)/size(unn,2);
 % the increasing pcnans at surface and bottom and variability of the mean
 % next step - check the spread of nans & depth count through the ts
 
-plot_check = 0;
+plot_check = 1;
 if plot_check
 % check for number of obs going into each hourly average along each z level
 % sometimes when ADCP is sampling at 20min intervals there are only 2/hour 
@@ -229,29 +229,30 @@ ttf = tr(iss);
   end
   th0 = nanmean(thz_mn(imid));
   th1 = nanmean(thzf(imid));
-  
+
 % rotate velocites to get across-shelf and alongshore
 % vrotate rotates clockwise 
 [ur,vr] = vrotate(ufs,vfs,-th0,'degrees');
 umr = nanmean(ur,2); 
 vmr = nanmean(vr,2);
 
-vvs = {'ur';'vr'}; cax = [-.5 .5];
-vlbl = 'rotated'
+vvs = {'vr';'ur'}; cax = [-.4 .4];
+vlbl = {'alongshore';'cross-shelf'};
+thstr = int2str(round(th1));
 for iv = 1:length(vvs)
     vnam = vvs{iv};
     eval(['VV = ' vnam ';'])
     figure('position',[0 0 1200 400],'color',[1 1 1])
     set(gca,'position',[0.05 0.09 0.9 0.84])
-    %xcolor(ttf,-zc,VV)
-    %colorbar
-    plot(ttf,VV,'.')
+    xcolor(ttf,-zc,VV)
+    colorbar
+    %plot(ttf,VV,'.')
     hold on
-    %plot(ttf,repmat(-zc,[1 length(ttf)]),'.k','markersize',1)
+    plot(ttf,repmat(-zc,[1 length(ttf)]),'.k','markersize',1)
     datetick('x','yyyy','keeplimits')
     caxis(cax)
     set(gca,'tickdir','in')
-    title([lcn ' ' vlbl ' ' vnam])
+    title([lcn ' ' vlbl{iv} ' ' vnam ', rotated ' thstr 'degs'])
     ylabel('Depth')
     %axis(ax1)
 end
